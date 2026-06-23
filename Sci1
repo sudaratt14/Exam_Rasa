@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบวิทยาศาสตร์ - จุดเดือดและจุดหลอมเหลว ความหนาแน่น</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .score-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 2px solid #ddd;
+            align-items: center;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .question-block {
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+            animation: slideIn 0.3s ease-in;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-left: 5px solid #667eea;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .question-number {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .option:hover:not(.answered) {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .option.answered {
+            cursor: not-allowed;
+        }
+
+        .option.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .option.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .option-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+            color: #667eea;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .option.correct .option-label {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        .option.incorrect .option-label {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .option-icon {
+            font-size: 20px;
+            margin-left: 10px;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            color: #721c24;
+        }
+
+        .feedback-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .answer-key {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .answer-key strong {
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-next {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-prev {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-prev:hover {
+            background: #ccc;
+        }
+
+        .btn-reset {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 30px;
+        }
+
+        .result-screen.show {
+            display: block;
+        }
+
+        .result-score {
+            font-size: 72px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .result-text {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .result-detail {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .emoji {
+            font-size: 100px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .question-text {
+                font-size: 16px;
+            }
+
+            .score-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📝 แบบทดสอบวิทยาศาสตร์</h1>
+            <p>เรื่อง: จุดเดือด จุดหลอมเหลว และความหนาแน่นของสาร</p>
+        </div>
+
+        <!-- Score Bar -->
+        <div class="score-bar">
+            <div class="score-item">
+                <span class="score-label">คะแนนที่ได้</span>
+                <span class="score-value" id="scoreValue">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">ข้อที่ทำ</span>
+                <span class="score-value" id="progressText">1/50</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">ร้อยละ</span>
+                <span class="score-value" id="percentageValue">0%</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Question Blocks -->
+            <div id="questionContainer"></div>
+
+            <!-- Result Screen -->
+            <div class="result-screen" id="resultScreen">
+                <div class="emoji" id="resultEmoji">😊</div>
+                <div class="result-text" id="resultMessage">ยินดีด้วย!</div>
+                <div class="result-score" id="resultScore">0/50</div>
+                <div class="result-detail" id="resultDetail"></div>
+                <button class="btn-reset" onclick="resetExam()">ทำแบบทดสอบใหม่</button>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="button-group" id="buttonGroup">
+                <button class="btn-prev" id="prevBtn" onclick="previousQuestion()" style="display:none;">← ย้อนกลับ</button>
+                <button class="btn-next" id="nextBtn" onclick="nextQuestion()" disabled>ถัดไป →</button>
+                <button class="btn-reset" onclick="resetExam()">เริ่มใหม่</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูลโจทย์ทั้ง 50 ข้อ
+        const questions = [
+            {num: 1, question: "ข้อใดต่อไปนี้กล่าวถึงความหมายของ 'สารบริสุทธิ์' ได้ถูกต้องที่สุด", choices: ["สารเนื้อเดียวที่มีส่วนผสมของสารตั้งแต่ 2 ชนิดขึ้นไป", "สารเนื้อผสมที่มีองค์ประกอบคงที่และแยกออกจากกันได้ง่าย", "สารเนื้อเดียวที่มีองค์ประกอบเพียงชนิดเดียว และมีสมบัติคงที่", "สารที่ไม่มีสิ่งเจือปนเลยและไม่สามารถเปลี่ยนสถานะได้"], answer: 2},
+            {num: 2, question: "กราฟการให้ความร้อนแก่ของเหลวชนิดหนึ่ง พบว่า 'เมื่อของเหลวเริ่มเดือด อุณหภูมิจะคงที่ตลอดการเดือด ณ ความดันบรรยากาศหนึ่ง ๆ' ของเหลวนี้จัดเป็นสารประเภทใด", choices: ["สารบริสุทธิ์", "สารละลาย", "สารผสม", "สารเนื้อผสม"], answer: 0},
+            {num: 3, question: "เมื่อนำน้ำเกลือซึ่งเป็นสารผสมไปต้มจนเดือด อุณหภูมิของน้ำเกลือขณะเดือดจะมีลักษณะอย่างไร", choices: ["คงที่เท่ากับจุดเดือดของน้ำบริสุทธิ์", "คงที่แต่สูงกว่าจุดเดือดของน้ำบริสุทธิ์", "ไม่คงที่และจะค่อย ๆ เพิ่มขึ้นเรื่อย ๆ", "ไม่คงที่และจะค่อย ๆ ลดลงเรื่อย ๆ"], answer: 2},
+            {num: 4, question: "เหตุใดสารผสมที่เป็นสารละลายจึงมีจุดเดือดไม่คงที่ตลอดการเดือด", choices: ["เพราะสารผสมเกิดปฏิกิริยาเคมีสร้างสารใหม่ตลอดเวลา", "เพราะตัวทำละลายระเหยออกไปเรื่อย ๆ ทำให้ความเข้มข้นของสารละลายเปลี่ยนไป", "เพราะสารผสมมีความหนาแน่นเพิ่มขึ้นอย่างรวดเร็ว", "เพราะความดันบรรยากาศเหนือของเหลวมีการเปลี่ยนแปลง"], answer: 1},
+            {num: 5, question: "ถ้าสาร X เริ่มหลอมเหลวที่อุณหภูมิ 115℃ และหลอมเหลวหมดที่อุณหภูมิ115.2℃ สาร X ควรจัดเป็นสารประเภทใดเพราะเหตุใด", choices: ["สารบริสุทธิ์เพราะมีช่วงการหลอมเหลวกว้าง", "สารบริสุทธิ์เพราะมีช่วงการหลอมเหลวแคบ", "สารผสม เพราะมีช่วงการหลอมเหลวแคบ", "สารผสม เพราะมีช่วงการหลอมเหลวกว้าง"], answer: 1},
+            {num: 6, question: "สาร Y เริ่มหลอมเหลวที่อุณหภูมิ 65℃ และหลอมเหลวหมดที่อุณหภูมิ 73℃ จากข้อมูลนี้ข้อใดสรุปได้ถูกต้อง", choices: ["สาร Y เป็นสารบริสุทธิ์ที่มีสิ่งเจือปนน้อย", "สาร Y เป็นสารผสม เนื่องจากช่วงการหลอมเหลวห่างกันถึง 8℃", "สาร Y เป็นสารบริสุทธิ์เนื่องจากอุณหภูมิเริ่มต้นหลอมเหลวต่ำ", "สาร Y เป็นสารเนื้อผสมที่แยกชั้นชัดเจน"], answer: 1},
+            {num: 7, question: "การเปรียบเทียบช่วงอุณหภูมิการหลอมเหลวระหว่างสารบริสุทธิ์และสารผสม ข้อใดถูกต้อง", choices: ["สารบริสุทธิ์มีช่วงการหลอมเหลวกว้างกว่าสารผสม", "สารผสมมีช่วงการหลอมเหลวแคบกว่าสารบริสุทธิ์", "สารบริสุทธิ์มีช่วงการหลอมเหลวแคบ ส่วนสารผสมมีช่วงการหลอมเหลวกว้าง", "ทั้งสารบริสุทธิ์และสารผสมมีช่วงการหลอมเหลวเท่ากัน"], answer: 2},
+            {num: 8, question: "เครื่องมือวิทยาศาสตร์ชนิดใดที่จำเป็นที่สุดในการทดสอบเพื่อศึกษาจุดเดือดของสาร", choices: ["บีกเกอร์และแท่งแก้วคนสาร", "เทอร์มอมิเตอร์และชุดตะเกียงแอลกอฮอล์", "กระบอกตวงและเครื่องชั่งสาร", "หลอดทดลองและที่จับหลอดทดลอง"], answer: 1},
+            {num: 9, question: "หากต้องการทดสอบว่าของเหลวใสไม่มีสีในขวดหนึ่งเป็น 'น้ำกลั่นบริสุทธิ์' หรือ 'น้ำเกลือ' วิธีการใดปลอดภัยและได้ผลแม่นยำที่สุด", choices: ["นำไปชิมรสชาติ", "นำไปดมกลิ่น", "นำไปตวงหาปริมาตร", "นำไปต้มเพื่อสังเกตความคงที่ของจุดเดือด"], answer: 3},
+            {num: 10, question: "สารในข้อใดต่อไปนี้จัดเป็นสารบริสุทธิ์ทั้งหมด", choices: ["น้ำเกลือ น้ำเชื่อม อากาศ", "แก๊สออกซิเจน น้ำกลั่น ทองคำแท้", "ทองเหลือง น้ำนม น้ำนม", "น้ำคลอง น้ำโซดา น้ำปลา"], answer: 1},
+            {num: 11, question: "สารในข้อใดต่อไปนี้จัดเป็นสารผสมทั้งหมด", choices: ["แก๊สไนโตรเจน ผงถ่าน เพชร", "น้ำตาลทราย เกลือแกง ผงชูรส", "น้ำหมึก อากาศ นาก", "ทองแดง สังกะสี อะลูมิเนียม"], answer: 1},
+            {num: 12, question: "ข้อใดอธิบายจุดเดือดของสารได้ถูกต้อง", choices: ["อุณหภูมิที่ของเหลวเปลี่ยนสถานะเป็นแก๊สทั่วทั้งหมดของเหลว", "อุณหภูมิที่ของแข็งเปลี่ยนสถานะเป็นของเหลว", "อุณหภูมิที่ของเหลวเปลี่ยนสถานะเป็นของแข็ง", "อุณหภูมิที่แก๊สเปลี่ยนสถานะเป็นของเหลว"], answer: 0},
+            {num: 13, question: "ณ ความดันบรรยากาศปกติ (1 atm) จุดเดือดของน้ำบริสุทธิ์มีค่าเท่าใด", choices: ["0℃", "50℃", "100℃", "120℃"], answer: 2},
+            {num: 14, question: "เมื่อนำสารบริสุทธิ์ (A) และสารบริสุทธิ์ (B) ซึ่งเป็นสารคนละชนิดกันมาหาจุดเดือด ณ ความดันเดียวกัน ข้อใดมีโอกาสเกิดขึ้นได้มากที่สุด", choices: ["สาร (A) และ (B) จะต้องมีจุดเดือดเท่ากันเสมอ", "สาร (A) และ (B) จะมีจุดเดือดคงที่แต่ค่าจุดเดือดอาจไม่เท่ากัน", "สาร (A) จะมีจุดเดือดคงที่ ส่วนสาร (B) จะมีจุดเดือดไม่คงที่", "ทั้งสองสารจะมีจุดเดือดไม่คงที่แต่อุณหภูมิจะเท่ากัน"], answer: 1},
+            {num: 15, question: "ในการทดลองต้มของเหลวเนื้อเดียวชนิดหนึ่งปรากฏว่าอุณหภูมิขณะเดือดเพิ่มขึ้นเรื่อย ๆ จาก 82℃ ไปจนถึง 95℃ ข้อใดสรุปได้ถูกต้องที่สุด", choices: ["ของเหลวนี้คือสารบริสุทธิ์ที่กำลังขยายตัว", "ของเหลวนี้คือสารผสม", "ของเหลวนี้เกิดการปนเปื้อนขณะเดือดเท่านั้น", "เทอร์มอมิเตอร์ที่ใช้ในการทดลองชำรุด"], answer: 1},
+            {num: 16, question: "สารที่มีช่วงอุณหภูมิที่เริ่มหลอมเหลวจนหลอมเหลวหมดต่างกัน 'น้อยกว่า 1℃' มักเป็นสารประเภทใด", choices: ["สารบริสุทธิ์", "สารละลายเข้มข้น", "สารผสม", "คอลลอยด์"], answer: 0},
+            {num: 17, question: "ข้อใดคือความแตกต่างที่เด่นชัดที่สุด ระหว่างจุดหลอมเหลวของแนฟทาลีน (ลูกเหม็น) และจุดหลอมเหลวของสารผสมระหว่างแนฟทาลีน กับสารอื่น", choices: ["แนฟทาลีนบริสุทธิ์มีจุดหลอมเหลวไม่คงที่", "สารผสมมีจุดหลอมเหลวคงที่และอุณหภูมิสูงกว่า", "แนฟทาลีนบริสุทธิ์มีช่วงการหลอมเหลวแคบและอุณหภูมิคงที่", "สารผสมมีช่วงการหลอมเหลวแคบกว่าแนฟทาลีนบริสุทธิ์"], answer: 2},
+            {num: 18, question: "ของเหลวชนิดหนึ่งมีจุดเดือดคงที่ที่ 78℃ เมื่อนำไปทดลองหาจุดหลอมเหลวพบว่าช่วงการหลอมเหลวแคบมาก สารนี้คือสารใด", choices: ["น้ำเชื่อม", "แอลกอฮอล์บริสุทธิ์", "น้ำเกลือ", "น้ำมันพืช"], answer: 1},
+            {num: 19, question: "นักเรียนคนหนึ่งกล่าวว่า 'ทองเหลือมีจุดหลอมเหลวคงที่เพราะมันดูเป็นเนื้อเดียวกัน' คำกล่าวนี้ถูกต้องหรือไม่ เพราะเหตุใด", choices: ["ถูกต้อง เพราะทองเหลือเป็นสารบริสุทธิ์", "ถูกต้อง เพราะสารเนื้อเดียวทุกชนิดต้องมีจุดหลอมเหลวคงที่", "ไม่ถูกต้อง เพราะทองเหลือเป็นสารผสม (โลหะเจือ) จุดหลอมเหลวจะไม่คงที่", "ไม่ถูกต้อง เพราะทองเหลือเป็นสารเนื้อผสม"], answer: 2},
+            {num: 20, question: "ข้อใดต่อไปนี้จัดเป็นสมบัติทางกายภาพของสารทั้งหมด", choices: ["การติดไฟ จุดเดือด การเกิดสนิม", "จุดเดือด จุดหลอมเหลว ความหนาแน่น", "ความหนาแน่น ความเป็นกรด-เบส การเผาไหม้", "จุดหลอมเหลว การเกิดสนิม กลิ่น"], answer: 1},
+            {num: 21, question: "ถ้าเติมผงเกลือลงในน้ำบริสุทธิ์ สารละลายน้ำเกลือที่ได้จะมีจุดเดือดเปลี่ยนแปลงไปอย่างไร เมื่อเทียบกับน้ำบริสุทธิ์", choices: ["จุดเดือดลดลงและคงที่", "จุดเดือดลดลงและไม่คงที่", "จุดเดือดสูงขึ้นและคงที่", "จุดเดือดสูงขึ้นและไม่คงที่"], answer: 3},
+            {num: 22, question: "กราฟความสัมพันธ์ระหว่างอุณหภูมิกับเวลาในการต้มสารบริสุทธิ์ในช่วงที่สารกำลังเดือด จะมีลักษณะอย่างไร", choices: ["เส้นกราฟทอดแนวขนานกับแกนนอน (อุณหภูมิคงที่)", "เส้นกราฟเฉียงขึ้นเรื่อย ๆ อย่างต่อเนื่อง", "เส้นกราฟเฉียงลงอย่างรวดเร็ว", "เส้นกราฟมีลักษณะเป็นลูกคลื่นขึ้น ๆ ลง ๆ"], answer: 0},
+            {num: 23, question: "ข้อใดอธิบายเกี่ยวกับ 'จุดหลอมเหลว' ได้ถูกต้อง", choices: ["อุณหภูมิที่สารเปลี่ยนสถานะจากของแข็งเป็นของเหลว", "อุณหภูมิที่สารเปลี่ยนสถานะจากของเหลวเป็นแก๊ส", "อุณหภูมิที่สารเปลี่ยนสถานะจากแก๊สเป็นของแข็ง", "อุณหภูมิที่สารเปลี่ยนสถานะจากของแข็งเป็นแก๊ส"], answer: 0},
+            {num: 24, question: "สิ่งใดที่ทำให้อุณหภูมิขณะเดือดของสารผสมเพิ่มขึ้นเรื่อย ๆ", choices: ["อัตราส่วนระหว่างตัวละลายต่อตัวทำละลายเพิ่มขึ้นเนื่องจากตัวทำละลายระเหยออก", "ตัวทำละลายระเหยกลายเป็นไอเรื่อย ๆ", "ปริมาณมวลรวมของสารผสมเพิ่มขึ้นจากการต้ม", "ความร้อนจากตะเกียงแอลกอฮอล์แรงขึ้น"], answer: 0},
+            {num: 25, question: "การที่สารผสมมีช่วงอุณหภูมิการหลอมเหลวกว้าง หมายความว่าอย่างไร", choices: ["สารนั้นใช้เวลาหลอมเหลวสั้นมาก", "สารเริ่มหลอมเหลวที่อุณหภูมิต่ำมากและหลอมเหลวหมดที่อุณหภูมิสูงกว่ามาก", "สารหลอมเหลวหมดทันทีที่อุณหภูมิคงที่อุณหภูมิหนึ่ง", "สารไม่มีวันหลอมเหลวได้หมด"], answer: 1},
+            {num: 26, question: "ข้อใดคือสูตรที่ใช้ในการคำนวณหาค่าความหนาแน่นของสาร", choices: ["ความหนาแน่น = มวล × ปริมาตร", "ความหนาแน่น = ปริมาตร ÷ มวล", "ความหนาแน่น = มวล ÷ ปริมาตร", "ความหนาแน่น = มวล + ปริมาตร"], answer: 2},
+            {num: 27, question: "หน่วยในข้อใดเป็นหน่วยของความหนาแน่นที่นิยมใช้ในห้องปฏิบัติการวิทยาศาสตร์", choices: ["กรัม (g)", "ลูกบาศก์เซนติเมตร (cm³)", "กรัมต่อลูกบาศก์เซนติเมตร (g/cm³)", "นิวตันต่อตารางเมตร (N/m²)"], answer: 2},
+            {num: 28, question: "วัตถุชนิ้นหนึ่งมีมวล 80 กรัม มีปริมาตร 20 ลูกบาศก์เซนติเมตร วัตถุชนิ้นนี้มีความหนาแน่นเท่าใด", choices: ["0.25 g/cm³", "4.0 g/cm³", "60 g/cm³", "1,600 g/cm³"], answer: 1},
+            {num: 29, question: "สารบริสุทธิ์ชนิดหนึ่งมีปริมาตร 10 ลูกบาศก์เซนติเมตร และมีความหนาแน่น 2.5 g/cm³ สารนี้จะมีมวลกี่กรัม", choices: ["4 กรัม", "12.5 กรัม", "25 กรัม", "0.25 กรัม"], answer: 2},
+            {num: 30, question: "นำแท่งเหล็กบริสุทธิ์ชิ้นหนึ่งซึ่งมีความหนาแน่น 7.8 g/cm³ มาตัดแบ่งครึ่งออกเป็น 2 ส่วนเท่า ๆ กัน ชิ้นส่วนเหล็กที่ถูกแบ่งออกมาแต่ละชิ้นจะมีความหนาแน่นเท่าใด", choices: ["3.9 g/cm³", "7.8 g/cm³", "15.6 g/cm³", "ไม่สามารถหาค่าได้เนื่องจากข้อมูลไม่พอ"], answer: 1},
+            {num: 31, question: "เหตุใดสารบริสุทธิ์ชนิดเดียวกัน ณ อุณหภูมิและความดันคงที่ จึงมีความหนาแน่นคงที่เสมอ", choices: ["เพราะไม่ว่าจะเปลี่ยนขนาดหรือมวลเท่าใด อัตราส่วนระหว่างมวลต่อปริมาตรจะยังเท่าเดิม", "เพราะสารบริสุทธิ์ไม่มีวันเปลี่ยนปริมาตรได้", "เพราะมวลของสารบริสุทธิ์จะมีค่าเท่ากับปริมาตรเสมอ", "เพราะสารบริสุทธิ์ไม่สามารถนำไปตัดแบ่งได้"], answer: 0},
+            {num: 32, question: "สารผสมมีความหนาแน่นคงที่หรือไม่ เพราะเหตุใด", choices: ["คงที่เพราะเป็นสารเนื้อเดียวเหมือนสารบริสุทธิ์", "คงที่เพราะมวลและปริมาตรของสารผสมไม่สามารถเปลี่ยนแปลงได้", "ไม่คงที่เพราะขึ้นอยู่กับชนิดและอัตราส่วนของสารที่นำมาผสมกัน", "ไม่คงที่ เพราะสารผสมจะเปลี่ยนสถานะตลอดเวลา"], answer: 2},
+            {num: 33, question: "ของเหลว 3 ชนิดที่ไม่ละลายซึ่งกันและกัน มีความหนาแน่นดังนี้: สาร A = 0.8 g/cm³, สาร B = 1.0 g/cm³, สาร C = 1.2 g/cm³ เมื่อเทรวมกันในกระบอกตวง การเรียงลำดับชั้นของของเหลวจากบนลงล่างจะเป็นอย่างไร", choices: ["A, B, C", "C, B, A", "B, A, C", "A, C, B"], answer: 0},
+            {num: 34, question: "ถ้านำวัตถุที่มีความหนาแน่น 0.92 g/cm³ ไปใส่ลงในน้ำที่มีความหนาแน่น 1.0 g/cm³ วัตถุนี้จะมีลักษณะอย่างไร", choices: ["จมก้นภาชนะอย่างรวดเร็ว", "ลอยปริ่มน้ำหรือลอยเหนือเปิดผิวน้ำบางส่วน", "ละลายกลายเป็นเนื้อเดียวกับน้ำทันที", "ระเบิดเนื่องจากทำปฏิกิริยากับน้ำ"], answer: 1},
+            {num: 35, question: "ถ้านำก้อนหินมวล 60 กรัม ไปใส่ในกระบอกตวงที่มีน้ำอยู่เดิมปริมาตร 30 ลูกบาศก์เซนติเมตร พบว่าระดับน้ำเพิ่มขึ้นเป็น 50 ลูกบาศก์เซนติเมตร ก้อนหินนี้มีความหนาแน่นเท่าใด", choices: ["1.2 g/cm³", "2.0 g/cm³", "3.0 g/cm³", "5.0 g/cm³"], answer: 1},
+            {num: 36, question: "ลูกบาศก์ไม้ชนิ้นหนึ่งมีความหนาแน่น 0.6 g/cm³ มีปริมาตร 100 ลูกบาศก์เซนติเมตร ช่างไม้ตัดไม้นี้ออกไปจนเหลือปริมาตร 20 ลูกบาศก์เซนติเมตร ไม้ชิ้นที่เหลือนี้จะมีความหนาแน่นเท่าใด", choices: ["0.12 g/cm³", "0.6 g/cm³", "3.0 g/cm³", "1.2 g/cm³"], answer: 1},
+            {num: 37, question: "สารละลายน้ำเชื่อมถ้วยที่ 1 มีน้ำตาล 20 กรัมในน้ำ 100 ลูกบาศก์เซนติเมตร สารละลายน้ำเชื่อมถ้วยที่ 2 มีน้ำตาล 50 กรัมในน้ำ 100 ลูกบาศก์เซนติเมตร ข้อใดกล่าวถูกต้องเกี่ยวกับความหนาแน่นของน้ำเชื่อมทั้งสองถ้วย", choices: ["ถ้วยที่ 1 มีความหนาแน่นมากกว่าถ้วยที่ 2", "ถ้วยที่ 2 มีความหนาแน่นมากกว่าถ้วยที่ 1", "ทั้งสองถ้วยมีความหนาแน่นเท่ากันเพราะเป็นน้ำเชื่อมเหมือนกัน", "ทั้งสองถ้วยมีความหนาแน่นเท่ากับน้ำบริสุทธิ์"], answer: 1},
+            {num: 38, question: "เมื่ออุณหภูมิของสารบริสุทธิ์เพิ่มขึ้น (สารไม่เปลี่ยนสถานะ) ปริมาตรของสารมักจะขยายตัวเพิ่มขึ้น ความหนาแน่นของสารนั้นจะเปลี่ยนแปลงอย่างไร", choices: ["ความหนาแน่นเพิ่มขึ้น", "ความหนาแน่นลดลง", "ความหนาแน่นเท่าเดิม", "ความหนาแน่นเป็นศูนย์"], answer: 1},
+            {num: 39, question: "วัตถุ (A) มวล 50 กรัม ปริมาตร 10 ลูกบาศก์เซนติเมตร วัตถุ (B) มวล 100 กรัม ปริมาตร 40 ลูกบาศก์เซนติเมตร ข้อใดสรุปเกี่ยวกับความหนาแน่นของวัตถุทั้งสองได้ถูกต้อง", choices: ["วัตถุ (A) หนาแน่นเท่ากับวัตถุ (B)", "วัตถุ (A) หนาแน่นน้อยกว่าวัตถุ (B)", "วัตถุ (A) หนาแน่นมากกว่าวัตถุ (B)", "ข้อมูลไม่เพียงพอในการเปรียบเทียบ"], answer: 2},
+            {num: 40, question: "นักเรียนคนหนึ่งโยนไข่ไก่ดิบลงในน้ำบริสุทธิ์พบว่าไข่ไก่จมก้น แต่เมื่อเทเกลือแกงลงไปคนให้ละลายจำนวนมาก พบว่าไข่ไก่ลอยขึ้นมาได้ ปรากฏการณ์นี้อธิบายด้วยหลักการใด", choices: ["เกลือช่วยลดมวลของไข่ไก่", "การละลายของเกลือทำให้ความหนาแน่นของสารละลายน้ำเกลือเพิ่มขึ้นจนมากกว่าไข่ไก่", "เกลือทำปฏิกิริยาเคมีเกิดแก๊สดันไข่ไก่ให้ลอย", "ไข่ไก่ดิบเปลี่ยนสถานะเป็นไข่ต้มจึงลอยได้"], answer: 1},
+            {num: 41, question: "ปัจจัยใดต่อไปนี้ที่มีผลทำให้ความหนาแน่นของแก๊สบริสุทธิ์เปลี่ยนแปลงได้ง่ายที่สุด", choices: ["รูปร่างของภาชนะ", "สีของแก๊ส", "อุณหภูมิและความดัน", "มวลของภาชนะที่บรรจุ"], answer: 2},
+            {num: 42, question: "วัตถุชนิดหนึ่งมีความหนาแน่น 1.5 g/cm³ หากต้องการให้วัตถุนี้ลอยในของเหลวชนิดหนึ่ง ของเหลวนั้นควรมีความหนาแน่นเท่าใด", choices: ["น้อยกว่า 1.0 g/cm³", "เท่ากับ 1.0 g/cm³", "ระหว่าง 1.0 – 1.4 g/cm³", "มากกว่า 1.5 g/cm³"], answer: 3},
+            {num: 43, question: "เครื่องมือชนิดใดที่ใช้สำหรับหา 'มวล' ของวัตถุเพื่อนำไปคำนวณหาความหนาแน่น", choices: ["กระบอกตวง", "ไม้บรรทัด", "เครื่องชั่ง", "เทอร์มอมิเตอร์"], answer: 2},
+            {num: 44, question: "การหาปริมาตรของวัตถุแข็งที่มีรูปทรงไม่เป็นเรขาคณิต (เช่น ก้อนหิน) นิยมใช้วิธีการใด", choices: ["การใช้สูตร กว้าง × ยาว × สูง", "การแทนที่น้ำด้วยถ้วยยูริกีและวัดปริมาตรน้ำที่ลื่นออกมา", "การนำไปชั่งน้ำหนักในอากาศ", "การใช้เทอร์มอมิเตอร์วัดปริมาตรความร้อน"], answer: 1},
+            {num: 45, question: "สาร (A, B, C) เป็นสารบริสุทธิ์ชนิดเดียวกัน ทั้งสามชิ้นมีปริมาตรไม่เท่ากัน ข้อใดกล่าวถูกต้อง", choices: ["ชิ้นที่มีปริมาตรมากที่สุด จะมีความหนาแน่นมากที่สุด", "ชิ้นที่มีปริมาตรน้อยที่สุด จะมีความหนาแน่นมากที่สุด", "ทั้งสามชิ้นมีความหนาแน่นเท่ากัน", "ทั้งสามชิ้นมีความหนาแน่นไม่เท่ากันเลย"], answer: 2},
+            {num: 46, question: "ข้อใดต่อไปนี้จัดเป็นสารผสมที่มีความหนาแน่นเปลี่ยนไปตามสัดส่วนปริมาณเนื้อสารที่ผสม", choices: ["แท่งเงินบริสุทธิ์", "น้ำแกงส้ม", "ทองคำแท้ 100%", "ผลึกเกลือแกงบริสุทธิ์"], answer: 1},
+            {num: 47, question: "พิจารณาตารางแสดงมวลและปริมาตรของสาร 4 ชนิด สารใดมีความหนาแน่นน้อยที่สุด (W: 10g/5cm³, X: 20g/20cm³, Y: 30g/15cm³, Z: 5g/2.5cm³)", choices: ["สาร W", "สาร X", "สาร Y", "สาร Z"], answer: 1},
+            {num: 48, question: "ข้อใดอธิบายพฤติกรรมของ 'น้ำแข็ง' ที่ลอยน้ำได้ถูกต้องตามหลักความหนาแน่น", choices: ["น้ำแข็งมีมวลมากกว่าน้ำในปริมาตรเท่ากัน", "น้ำแข็งขยายตัวทำให้ปริมาตรเพิ่มขึ้น ความหนาแน่นจึงน้อยกว่าน้ำบริสุทธิ์", "น้ำแข็งเป็นสารผสมที่มีแก๊สปนอยู่มาก", "น้ำแข็งทำปฏิกิริยากับออกซิเจนในอากาศจึงลอยได้"], answer: 1},
+            {num: 49, question: "ถ้าสาร (P) มีความหนาแน่น 0.5 g/cm³ สาร (Q) มีความหนาแน่น 2.0 g/cm³ ถ้านำสารทั้งสองที่มีปริมาตร 10 ลูกบาศก์เซนติเมตรเท่ากันมาคูณหามวล ข้อใดถูกต้อง", choices: ["สาร (P) มีมวลมากกว่าสาร (Q)", "สาร (Q) มีมวลมากกว่าสาร (P)", "ทั้งสองสารมีมวลเท่ากัน", "ไม่สามารถเปรียบเทียบมวลกันได้"], answer: 1},
+            {num: 50, question: "ข้อใดสรุปเกี่ยวกับสมบัติของสารบริสุทธิ์และสารผสมได้ถูกต้องที่สุด", choices: ["สารบริสุทธิ์มีจุดเดือดคงที่ จุดหลอมเหลวแคบ ความหนาแน่นคงที่ณ สภาวะหนึ่ง ๆ", "สารผสมมีจุดเดือดคงที่แต่จุดหลอมเหลวกว้าง ความหนาแน่นไม่คงที่", "สารบริสุทธิ์มีจุดเดือดไม่คงที่ความหนาแน่นไม่คงที่แต่จุดหลอมเหลวแคบ", "สารผสมมีสมบัติทุกอย่างคงที่เหมือนสารบริสุทธิ์ทุกประการ"], answer: 0}
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = []; // เก็บคำตอบที่ตอบไปแล้ว
+
+        function initExam() {
+            renderQuestion();
+            updateScore();
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('questionContainer');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const block = document.createElement('div');
+                block.className = `question-block ${index === currentQuestion ? 'active' : ''}`;
+                block.id = `q${index}`;
+
+                let optionsHTML = '';
+                const labels = ['ก', 'ข', 'ค', 'ง'];
+                q.choices.forEach((choice, i) => {
+                    const isAnswered = answered[index] !== undefined;
+                    const isCorrect = answered[index] === q.answer;
+                    const selected = answered[index] === i;
+                    let optionClass = '';
+                    let iconHTML = '';
+
+                    if (isAnswered && selected) {
+                        if (isCorrect) {
+                            optionClass = 'correct';
+                            iconHTML = ' ✓';
+                        } else {
+                            optionClass = 'incorrect';
+                            iconHTML = ' ✗';
+                        }
+                    }
+
+                    optionsHTML += `
+                        <div class="option ${optionClass} ${isAnswered ? 'answered' : ''}"
+                             onclick="${!isAnswered ? `selectAnswer(${index}, ${i})` : ''}">
+                            <span class="option-label">${labels[i]}</span>
+                            <span class="option-text">${choice}</span>
+                            <span class="option-icon">${iconHTML}</span>
+                        </div>
+                    `;
+                });
+
+                let feedbackHTML = '';
+                if (answered[index] !== undefined) {
+                    const isCorrect = answered[index] === q.answer;
+                    feedbackHTML = `
+                        <div class="feedback show ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-header">
+                                ${isCorrect ? '✓ ตอบถูกแล้ว!' : '✗ ตอบผิด'}
+                            </div>
+                            <div class="answer-key">
+                                <strong>คำตอบที่ถูก:</strong> ${labels[q.answer]}) ${q.choices[q.answer]}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                block.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-number">ข้อที่ ${q.num} / 50</div>
+                        <div class="question-text">${q.question}</div>
+                    </div>
+                    <div class="options">${optionsHTML}</div>
+                    ${feedbackHTML}
+                `;
+
+                container.appendChild(block);
+            });
+        }
+
+        function selectAnswer(questionIndex, choiceIndex) {
+            answered[questionIndex] = choiceIndex;
+            if (choiceIndex === questions[questionIndex].answer) {
+                score++;
+            }
+            updateScore();
+            renderQuestion();
+            updateButtons();
+        }
+
+        function updateScore() {
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('progressText').textContent = `${Object.keys(answered).length}/50`;
+            document.getElementById('percentageValue').textContent = `${percentage}%`;
+            document.getElementById('progressBar').style.width = `${(Object.keys(answered).length / 50) * 100}%`;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                updateView();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                updateView();
+            }
+        }
+
+        function updateView() {
+            document.querySelectorAll('.question-block').forEach(el => el.classList.remove('active'));
+            document.getElementById(`q${currentQuestion}`).classList.add('active');
+            updateButtons();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            if (currentQuestion === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'block';
+            }
+
+            if (answered[currentQuestion] !== undefined) {
+                nextBtn.disabled = false;
+                if (currentQuestion === questions.length - 1) {
+                    nextBtn.textContent = 'ดูผลสอบ →';
+                }
+            } else {
+                nextBtn.disabled = true;
+            }
+        }
+
+        function showResults() {
+            document.getElementById('questionContainer').style.display = 'none';
+            document.getElementById('buttonGroup').style.display = 'none';
+
+            const percentage = Math.round((score / questions.length) * 100);
+            let resultMessage = '';
+            let emoji = '';
+
+            if (percentage === 100) {
+                resultMessage = 'ยอดเยี่ยม! ทำได้ลูกเต่า 💯';
+                emoji = '🏆';
+            } else if (percentage >= 80) {
+                resultMessage = 'ดีมาก! ตัวจริง 😊';
+                emoji = '⭐';
+            } else if (percentage >= 60) {
+                resultMessage = 'ดี! ทำอีกแปบนะ 👍';
+                emoji = '😌';
+            } else if (percentage >= 40) {
+                resultMessage = 'พยายามเข้า! ต่อไปจะดีขึ้น 💪';
+                emoji = '😅';
+            } else {
+                resultMessage = 'ต้องทำความเข้าใจเพิ่มเติม 📚';
+                emoji = '😌';
+            }
+
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultMessage').textContent = resultMessage;
+            document.getElementById('resultScore').textContent = `${score}/50`;
+            document.getElementById('resultDetail').textContent = `คะแนน: ${score} คะแนน | ร้อยละ: ${percentage}%`;
+            document.getElementById('resultScreen').classList.add('show');
+        }
+
+        function resetExam() {
+            currentQuestion = 0;
+            score = 0;
+            answered = [];
+            document.getElementById('questionContainer').style.display = 'block';
+            document.getElementById('buttonGroup').style.display = 'flex';
+            document.getElementById('resultScreen').classList.remove('show');
+            updateScore();
+            renderQuestion();
+            updateButtons();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', initExam);
+    </script>
+</body>
+</html>
